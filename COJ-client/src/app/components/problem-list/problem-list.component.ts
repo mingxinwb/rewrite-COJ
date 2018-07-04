@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Problem } from '../../models/problem.model';
-import { PROBLEMS } from '../../mock-problems';
+import { DataService } from '../../services/data.service';
 
 @Component({
   selector: 'app-problem-list',
@@ -9,7 +9,7 @@ import { PROBLEMS } from '../../mock-problems';
 })
 export class ProblemListComponent implements OnInit {
   problems: Problem[];
-  constructor() { }
+  constructor(private dataService: DataService) { }
 
   ngOnInit() {
     this.getProblems();
@@ -17,7 +17,7 @@ export class ProblemListComponent implements OnInit {
 
   // already have void no need to write return;
   getProblems(): void {
-    this.problems = PROBLEMS;
+    this.problems = this.dataService.getProblems();
   }
 
 }
