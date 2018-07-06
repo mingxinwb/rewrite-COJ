@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
 import { DataService } from './services/data.service';
+import { AuthService } from './services/auth.service';
 import { routing } from './app.routes';
 
 import { AppComponent } from './app.component';
@@ -27,7 +28,8 @@ import { NavbarComponent } from './components/navbar/navbar.component';
     HttpModule
   ],
   providers: [
-    DataService
+    DataService,
+    AuthService
   ],
   bootstrap: [AppComponent]
 })

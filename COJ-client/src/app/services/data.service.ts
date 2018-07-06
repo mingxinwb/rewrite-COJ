@@ -18,7 +18,7 @@ export class DataService {
 
   getProblems(): Observable<Problem[]> {
     // return this.problems;
-    this.http.get('api/v1/problems')
+    this.http.get('/api/v1/problems')
         .toPromise()
         .then((res: Response) => {
           this._problemSource.next(res.json());
@@ -29,7 +29,7 @@ export class DataService {
 
   getProblem(id: number) {
     // return this.problems.find((problem) => problem.id === id);
-    return this.http.get(`api/v1/problems/${id}`)
+    return this.http.get(`/api/v1/problems/${id}`)
         .toPromise()
         .then((res: Response) => {
           this.getProblems();

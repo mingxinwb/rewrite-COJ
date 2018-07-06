@@ -22,7 +22,7 @@ export class NewProblemComponent implements OnInit {
   ngOnInit() {
   }
 
-  addProblem() {
+  addProblem():void {
     // this.dataService.addProblem(this.newProblem);
     // this.newProblem = Object.assign({}, DEFAULT_PROBLEM);
     this.dataService.addProblem(this.newProblem)
