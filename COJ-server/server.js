@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const restRouter = require('./routes/rest');
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://user:user123@ds125841.mlab.com:25841/rewritecoj');
+mongoose.connect('mongodb://user:user123@ds125841.mlab.com:25841/rewritecoj', { useNewUrlParser: true });
 
 app.get('/', (req, res) => {
     res.send('Hello Woolaa!');

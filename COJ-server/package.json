@@ -12,6 +12,8 @@
   "dependencies": {
     "body-parser": "^1.18.3",
     "express": "^4.16.3",
-    "mongoose": "^5.2.1"
+    "mongoose": "^5.2.1",
+    "rxjs": "^6.2.1",
+    "rxjs-compat": "^6.2.1"
   }
 }
