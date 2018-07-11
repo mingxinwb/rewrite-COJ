@@ -5,6 +5,7 @@ import { HttpModule } from '@angular/http';
 
 import { DataService } from './services/data.service';
 import { AuthService } from './services/auth.service';
+import { CollaborationService } from './services/collaboration.service';
 import { routing } from './app.routes';
 
 import { AppComponent } from './app.component';
@@ -31,7 +32,8 @@ import { EditorComponent } from './components/editor/editor.component';
   ],
   providers: [
     DataService,
-    AuthService
+    AuthService,
+    CollaborationService
   ],
   bootstrap: [AppComponent]
 })
