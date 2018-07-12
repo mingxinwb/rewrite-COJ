@@ -240,7 +240,8 @@ module.exports = "<section>\n  <header class=\"editor-header\">\n    <select cla
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EditorComponent", function() { return EditorComponent; });
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
-/* harmony import */ var _services_collaboration_service__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../services/collaboration.service */ "./src/app/services/collaboration.service.ts");
+/* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/router */ "./node_modules/@angular/router/fesm5/router.js");
+/* harmony import */ var _services_collaboration_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../services/collaboration.service */ "./src/app/services/collaboration.service.ts");
 var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -252,9 +253,11 @@ var __metadata = (undefined && undefined.__metadata) || function (k, v) {
 };
 
 
+
 var EditorComponent = /** @class */ (function () {
-    function EditorComponent(collaboration) {
+    function EditorComponent(collaboration, route) {
         this.collaboration = collaboration;
+        this.route = route;
         this.language = 'Java';
         this.languages = ['Java', 'Python'];
         this.defaultContent = {
@@ -263,11 +266,28 @@ var EditorComponent = /** @class */ (function () {
         };
     }
     EditorComponent.prototype.ngOnInit = function () {
+        var _this = this;
+        this.route.params
+            .subscribe(function (params) {
+            _this.sessionId = params['id'];
+            _this.initEditor();
+        });
+    };
+    EditorComponent.prototype.initEditor = function () {
+        var _this = this;
         this.editor = ace.edit('editor');
         this.editor.$blockScrolling = Infinity;
         this.editor.setTheme('ace/theme/eclipse');
         this.resetEditor();
-        this.collaboration.init();
+        this.collaboration.init(this.sessionId, this.editor);
+        this.editor.lastAppliedChange = null;
+        // regist change callback
+        this.editor.on('change', function (e) {
+            console.log('editor changes: ' + JSON.stringify(e));
+            if (_this.editor.lastAppliedChange != e) {
+                _this.collaboration.change(JSON.stringify(e));
+            }
+        });
     };
     EditorComponent.prototype.resetEditor = function () {
         this.editor.setValue(this.defaultContent[this.language]);
@@ -287,7 +307,8 @@ var EditorComponent = /** @class */ (function () {
             template: __webpack_require__(/*! ./editor.component.html */ "./src/app/components/editor/editor.component.html"),
             styles: [__webpack_require__(/*! ./editor.component.css */ "./src/app/components/editor/editor.component.css")]
         }),
-        __metadata("design:paramtypes", [_services_collaboration_service__WEBPACK_IMPORTED_MODULE_1__["CollaborationService"]])
+        __metadata("design:paramtypes", [_services_collaboration_service__WEBPACK_IMPORTED_MODULE_2__["CollaborationService"],
+            _angular_router__WEBPACK_IMPORTED_MODULE_1__["ActivatedRoute"]])
     ], EditorComponent);
     return EditorComponent;
 }());
@@ -737,11 +758,24 @@ var __metadata = (undefined && undefined.__metadata) || function (k, v) {
 var CollaborationService = /** @class */ (function () {
     function CollaborationService() {
     }
-    CollaborationService.prototype.init = function () {
-        this.collaborationSocket = io(window.location.origin, { query: 'message=' + 'hahaha' });
-        this.collaborationSocket.on('message', function (message) {
-            console.log('message received from server: ' + message);
+    // init(): void {
+    //   this.collaborationSocket = io(window.location.origin, { query: 'message=' + 'hahaha'});
+    //   this.collaborationSocket.on('message', (message) => {
+    //     console.log('message received from server: ' + message);
+    //   })
+    // }
+    CollaborationService.prototype.init = function (sessionId, editor) {
+        this.collaborationSocket = io(window.location.origin, { query: 'sessionId=' + sessionId });
+        // listeners
+        this.collaborationSocket.on('change', function (delta) {
+            console.log('collaboration from server: editor changes by ' + delta);
+            delta = JSON.parse(delta);
+            editor.lastAppliedChange = delta;
+            editor.getSession().getDocument().applyDeltas([delta]);
         });
+    };
+    CollaborationService.prototype.change = function (delta) {
+        this.collaborationSocket.emit('change', delta);
     };
     CollaborationService = __decorate([
         Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["Injectable"])({
