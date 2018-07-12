@@ -281,13 +281,19 @@ var EditorComponent = /** @class */ (function () {
         this.resetEditor();
         this.collaboration.init(this.sessionId, this.editor);
         this.editor.lastAppliedChange = null;
-        // regist change callback
+        // regist change callbacks
         this.editor.on('change', function (e) {
             console.log('editor changes: ' + JSON.stringify(e));
             if (_this.editor.lastAppliedChange != e) {
                 _this.collaboration.change(JSON.stringify(e));
             }
         });
+        this.editor.getSession().getSelection().on('changeCursor', function () {
+            var cursor = _this.editor.getSession().getSelection().getCursor();
+            console.log('curson from log from client ' + JSON.stringify(cursor));
+            _this.collaboration.cursorMove(JSON.stringify(cursor));
+        });
+        this.collaboration.restoreBuffer();
     };
     EditorComponent.prototype.resetEditor = function () {
         this.editor.setValue(this.defaultContent[this.language]);
@@ -745,6 +751,7 @@ var AuthService = /** @class */ (function () {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CollaborationService", function() { return CollaborationService; });
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "./node_modules/@angular/core/fesm5/core.js");
+/* harmony import */ var _assets_colors__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../assets/colors */ "./src/assets/colors.ts");
 var __decorate = (undefined && undefined.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -755,8 +762,11 @@ var __metadata = (undefined && undefined.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 
+
 var CollaborationService = /** @class */ (function () {
     function CollaborationService() {
+        this.clientsInfo = {};
+        this.clientNum = 0;
     }
     // init(): void {
     //   this.collaborationSocket = io(window.location.origin, { query: 'message=' + 'hahaha'});
@@ -765,6 +775,7 @@ var CollaborationService = /** @class */ (function () {
     //   })
     // }
     CollaborationService.prototype.init = function (sessionId, editor) {
+        var _this = this;
         this.collaborationSocket = io(window.location.origin, { query: 'sessionId=' + sessionId });
         // listeners
         this.collaborationSocket.on('change', function (delta) {
@@ -773,9 +784,37 @@ var CollaborationService = /** @class */ (function () {
             editor.lastAppliedChange = delta;
             editor.getSession().getDocument().applyDeltas([delta]);
         });
+        this.collaborationSocket.on('cursorMove', function (cursor) {
+            console.log('cursor move: ' + cursor);
+            var session = editor.getSession();
+            cursor = JSON.parse(cursor);
+            var x = cursor['row'];
+            var y = cursor['column'];
+            var changeClientId = cursor['socketId'];
+            if (changeClientId in _this.clientsInfo) {
+                session.removeMarker(_this.clientsInfo[changeClientId]['marker']);
+            }
+            else {
+                _this.clientsInfo[changeClientId] = {};
+                var css = document.createElement('style');
+                css.type = 'text/css';
+                css.innerHTML = ".editor_cursor_" + changeClientId + "\n                        {\n                          position: absolute;\n                          background: " + _assets_colors__WEBPACK_IMPORTED_MODULE_1__["COLORS"][_this.clientNum] + ";\n                          z-index: 100;\n                          width: 3px !important;\n                        }";
+                document.body.appendChild(css);
+                _this.clientNum++;
+            }
+            var Range = ace.require('ace/range').Range;
+            var newMarker = session.addMarker(new Range(x, y, x, y + 1), "editor_cursor_" + changeClientId, true);
+            _this.clientsInfo[changeClientId]['marker'] = newMarker;
+        });
     };
     CollaborationService.prototype.change = function (delta) {
         this.collaborationSocket.emit('change', delta);
+    };
+    CollaborationService.prototype.cursorMove = function (cursor) {
+        this.collaborationSocket.emit('cursorMove', cursor);
+    };
+    CollaborationService.prototype.restoreBuffer = function () {
+        this.collaborationSocket.emit('restoreBuffer');
     };
     CollaborationService = __decorate([
         Object(_angular_core__WEBPACK_IMPORTED_MODULE_0__["Injectable"])({
@@ -873,6 +912,61 @@ var DataService = /** @class */ (function () {
     return DataService;
 }());
 
+
+
+/***/ }),
+
+/***/ "./src/assets/colors.ts":
+/*!******************************!*\
+  !*** ./src/assets/colors.ts ***!
+  \******************************/
+/*! exports provided: COLORS */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "COLORS", function() { return COLORS; });
+var COLORS = [
+    "#0000ff",
+    "#a52a2a",
+    "#00ffff",
+    "#00008b",
+    "#008b8b",
+    "#a9a9a9",
+    "#006400",
+    "#bdb76b",
+    "#8b008b",
+    "#556b2f",
+    "#ff8c00",
+    "#9932cc",
+    "#8b0000",
+    "#e9967a",
+    "#9400d3",
+    "#ff00ff",
+    "#ffd700",
+    "#008000",
+    "#4b0082",
+    "#f0e68c",
+    "#add8e6",
+    "#e0ffff",
+    "#90ee90",
+    "#d3d3d3",
+    "#ffb6c1",
+    "#ffffe0",
+    "#00ff00",
+    "#ff00ff",
+    "#800000",
+    "#000080",
+    "#808000",
+    "#ffa500",
+    "#ffc0cb",
+    "#800080",
+    "#800080",
+    "#ff0000",
+    "#c0c0c0",
+    "#ffffff",
+    "#ffff00"
+];
 
 
 /***/ }),

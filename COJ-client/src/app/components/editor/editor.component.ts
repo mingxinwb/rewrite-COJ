@@ -43,13 +43,21 @@ export class EditorComponent implements OnInit {
     this.collaboration.init(this.sessionId, this.editor);
     this.editor.lastAppliedChange = null;
 
-    // regist change callback
+    // regist change callbacks
     this.editor.on('change', (e)=> {
       console.log('editor changes: ' + JSON.stringify(e));
       if (this.editor.lastAppliedChange != e) {
         this.collaboration.change(JSON.stringify(e));
       }
     });
+
+    this.editor.getSession().getSelection().on('changeCursor', () => {
+      const cursor = this.editor.getSession().getSelection().getCursor();
+      console.log('curson from log from client ' + JSON.stringify(cursor));
+      this.collaboration.cursorMove(JSON.stringify(cursor));
+    });
+
+    this.collaboration.restoreBuffer();
   }
 
   resetEditor(): void {
